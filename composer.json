@@ -1,0 +1,16 @@
+{
+  "name": "tienrocker/cloudflareip",
+  "description": "Phalcon authentication packages",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Tien Tran",
+      "email": "contact@tienrocker.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "TMT\\": "src/"
+    }
+  }
+}
