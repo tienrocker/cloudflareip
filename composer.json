@@ -1,16 +1,16 @@
 {
   "name": "tienrocker/cloudflareip",
-  "description": "Phalcon authentication packages",
+  "description": "Get real ip via cloudflare proxy",
   "license": "MIT",
   "authors": [
     {
-      "name": "Tien Tran",
-      "email": "contact@tienrocker.com"
+      "name": "Tiến Trần",
+      "email": "tienrocker@gmail.com"
     }
   ],
   "autoload": {
     "psr-4": {
-      "TMT\\": "src/"
+      "TMT\\CL\\": "src/"
     }
   }
 }

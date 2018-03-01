@@ -2,4 +2,4 @@
 
 include '../src/CloudFlareIP.php';
 
-echo sprintf('Your IP is: ' . \TMT\CloudFlareIP::IP());
+echo sprintf('Your IP is: ' . \TMT\CL\CloudFlareIP::IP());

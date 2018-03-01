@@ -1,6 +1,6 @@
 <?php
 
-namespace TMT;
+namespace TMT\CL;
 
 class CloudFlareIP
 {
