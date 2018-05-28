@@ -12,5 +12,8 @@
     "psr-4": {
       "TMT\\CL\\": "src/"
     }
+  },
+  "require": {
+	"geoip2/geoip2": "~2.0"
   }
 }
