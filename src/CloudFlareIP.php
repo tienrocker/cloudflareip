@@ -88,7 +88,7 @@ EOT;
     {
         if (!filter_var($ip, FILTER_VALIDATE_IP)) return false; // invalid ip
 
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        if (static::isIpV4($ip)) {
             $cf_ip_ranges = explode(PHP_EOL, static::$_ips_v4);
             foreach ($cf_ip_ranges as $range) {
                 if (empty($range)) continue;
@@ -152,7 +152,7 @@ EOT;
     }
 
     // ipv4_in_range
-    // This function takes 2 arguments, an IP address and a "range" in several
+    // This function takes 2 arguments, an IP address and a 'range' in several
     // different formats.
     // Network ranges can be specified as:
     // 1. Wildcard format:     1.2.3.*
@@ -161,7 +161,7 @@ EOT;
     // The function will return true if the supplied IP is within the range.
     // Note little validation is done on the range inputs - it expects you to
     // use one of the above 3 formats.
-    private static function ipv4_in_range($ip, $range)
+    public static function ipv4_in_range($ip, $range)
     {
         if (strpos($range, '/') !== false) {
             // $range is in IP/NETMASK format
@@ -177,7 +177,7 @@ EOT;
                 $x = explode('.', $range);
                 while (count($x) < 4) $x[] = '0';
                 list($a, $b, $c, $d) = $x;
-                $range = sprintf("%u.%u.%u.%u", empty($a) ? '0' : $a, empty($b) ? '0' : $b, empty($c) ? '0' : $c, empty($d) ? '0' : $d);
+                $range = sprintf('%u.%u.%u.%u', empty($a) ? '0' : $a, empty($b) ? '0' : $b, empty($c) ? '0' : $c, empty($d) ? '0' : $d);
                 $range_dec = ip2long($range);
                 $ip_dec = ip2long($ip);
 
@@ -196,14 +196,14 @@ EOT;
                 // Just convert to A-B format by setting * to 0 for A and 255 for B
                 $lower = str_replace('*', '0', $range);
                 $upper = str_replace('*', '255', $range);
-                $range = "$lower-$upper";
+                $range = sprintf('%s-%s', $lower, $upper);
             }
 
             if (strpos($range, '-') !== false) { // A-B format
                 list($lower, $upper) = explode('-', $range, 2);
-                $lower_dec = (float)sprintf("%u", ip2long($lower));
-                $upper_dec = (float)sprintf("%u", ip2long($upper));
-                $ip_dec = (float)sprintf("%u", ip2long($ip));
+                $lower_dec = (float)sprintf('%u', ip2long($lower));
+                $upper_dec = (float)sprintf('%u', ip2long($upper));
+                $ip_dec = (float)sprintf('%u', ip2long($ip));
                 return (($ip_dec >= $lower_dec) && ($ip_dec <= $upper_dec));
             }
             return false;
@@ -228,41 +228,41 @@ EOT;
     // Get the ipv6 full format and return it as a decimal value.
     private static function get_ipv6_full($ip)
     {
-        $pieces = explode("/", $ip, 2);
+        $pieces = explode('/', $ip, 2);
         $left_piece = $pieces[0];
         $right_piece = $pieces[1];
 
         // Extract out the main IP pieces
-        $ip_pieces = explode("::", $left_piece, 2);
+        $ip_pieces = explode('::', $left_piece, 2);
         $main_ip_piece = $ip_pieces[0];
         $last_ip_piece = $ip_pieces[1];
 
         // Pad out the shorthand entries.
-        $main_ip_pieces = explode(":", $main_ip_piece);
+        $main_ip_pieces = explode(':', $main_ip_piece);
         foreach ($main_ip_pieces as $key => $val) {
-            $main_ip_pieces[$key] = str_pad($main_ip_pieces[$key], 4, "0", STR_PAD_LEFT);
+            $main_ip_pieces[$key] = str_pad($main_ip_pieces[$key], 4, '0', STR_PAD_LEFT);
         }
 
         // Check to see if the last IP block (part after ::) is set
-        $last_piece = "";
+        $last_piece = '';
         $size = count($main_ip_pieces);
-        if (trim($last_ip_piece) != "") {
-            $last_piece = str_pad($last_ip_piece, 4, "0", STR_PAD_LEFT);
+        if (trim($last_ip_piece) != '') {
+            $last_piece = str_pad($last_ip_piece, 4, '0', STR_PAD_LEFT);
 
             // Build the full form of the IPV6 address considering the last IP block set
             for ($i = $size; $i < 7; $i++) {
-                $main_ip_pieces[$i] = "0000";
+                $main_ip_pieces[$i] = '0000';
             }
             $main_ip_pieces[7] = $last_piece;
         } else {
             // Build the full form of the IPV6 address
             for ($i = $size; $i < 8; $i++) {
-                $main_ip_pieces[$i] = "0000";
+                $main_ip_pieces[$i] = '0000';
             }
         }
 
         // Rebuild the final long form IPV6 address
-        $final_ip = implode(":", $main_ip_pieces);
+        $final_ip = implode(':', $main_ip_pieces);
 
         return static::ip2long6($final_ip);
     }
@@ -272,21 +272,21 @@ EOT;
     // $ip is the IPV6 address in decimal format to check if its within the IP range created by the cloudflare IPV6 address, $range_ip.
     // $ip and $range_ip are converted to full IPV6 format.
     // Returns true if the IPV6 address, $ip,  is within the range from $range_ip.  False otherwise.
-    private static function ipv6_in_range($ip, $range_ip)
+    public static function ipv6_in_range($ip, $range_ip)
     {
-        $pieces = explode("/", $range_ip, 2);
+        $pieces = explode('/', $range_ip, 2);
         $left_piece = $pieces[0];
         $right_piece = $pieces[1];
 
         // Extract out the main IP pieces
-        $ip_pieces = explode("::", $left_piece, 2);
+        $ip_pieces = explode('::', $left_piece, 2);
         $main_ip_piece = $ip_pieces[0];
         $last_ip_piece = $ip_pieces[1];
 
         // Pad out the shorthand entries.
-        $main_ip_pieces = explode(":", $main_ip_piece);
+        $main_ip_pieces = explode(':', $main_ip_piece);
         foreach ($main_ip_pieces as $key => $val) {
-            $main_ip_pieces[$key] = str_pad($main_ip_pieces[$key], 4, "0", STR_PAD_LEFT);
+            $main_ip_pieces[$key] = str_pad($main_ip_pieces[$key], 4, '0', STR_PAD_LEFT);
         }
 
         // Create the first and last pieces that will denote the IPV6 range.
@@ -294,30 +294,45 @@ EOT;
         $last = $main_ip_pieces;
 
         // Check to see if the last IP block (part after ::) is set
-        $last_piece = "";
+        $last_piece = '';
         $size = count($main_ip_pieces);
-        if (trim($last_ip_piece) != "") {
-            $last_piece = str_pad($last_ip_piece, 4, "0", STR_PAD_LEFT);
+        if (trim($last_ip_piece) != '') {
+            $last_piece = str_pad($last_ip_piece, 4, '0', STR_PAD_LEFT);
 
             // Build the full form of the IPV6 address considering the last IP block set
             for ($i = $size; $i < 7; $i++) {
-                $first[$i] = "0000";
-                $last[$i] = "ffff";
+                $first[$i] = '0000';
+                $last[$i] = 'ffff';
             }
             $main_ip_pieces[7] = $last_piece;
         } else {
             // Build the full form of the IPV6 address
             for ($i = $size; $i < 8; $i++) {
-                $first[$i] = "0000";
-                $last[$i] = "ffff";
+                $first[$i] = '0000';
+                $last[$i] = 'ffff';
             }
         }
 
         // Rebuild the final long form IPV6 address
-        $first = static::ip2long6(implode(":", $first));
-        $last = static::ip2long6(implode(":", $last));
+        $first = static::ip2long6(implode(':', $first));
+        $last = static::ip2long6(implode(':', $last));
         $in_range = ($ip >= $first && $ip <= $last);
 
         return $in_range;
+    }
+
+    public static function country()
+    {
+        return @$_SERVER['HTTP_CF_IPCOUNTRY'];
+    }
+
+    public static function isIpV4($ip)
+    {
+        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+    }
+
+    public static function isIpV6($ip)
+    {
+        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6);
     }
 }
